@@ -14,18 +14,20 @@ A friendly conversational chatbot that recommends recipes based on user preferen
 
 1. Make sure you have Python installed and your virtual environment activated
 
-2. Install the required packages:
+2. Install rustup-init (needed by Qdrant)
+
+3. Install the required packages:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Prepare your recipes CSV file:
+4. Prepare your recipes CSV file:
 Create a file named `recipes.csv` with the following columns:
 - name: Recipe name
 - ingredients: List of ingredients
 - instructions: Cooking instructions
 
-4. Run the Streamlit app:
+5. Run the Streamlit app:
 ```bash
 streamlit run app.py
 ```

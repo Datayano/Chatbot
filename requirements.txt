@@ -7,3 +7,5 @@ transformers==4.31.0
 huggingface-hub==0.16.4
 tokenizers==0.13.3
 torch==2.1.1
+openai==1.6.1  # For API compatibility with Grok
+requests==2.31.0
