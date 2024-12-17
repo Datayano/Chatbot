@@ -1,0 +1,9 @@
+# Environnement
+.venv
+
+# Data
+assets
+
+# Other
+app copy.py
+
