@@ -60,9 +60,4 @@ Retriever: To match user input with the vectorstore.
 The retriever's output is processed by an LLM to generate a clean and structured result.
 The entire workflow is managed by a chatbot with integrated memory.
 
-# A modifier
-
-
-text-embedding-3-small 
-0,02 /1M
 
