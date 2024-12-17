@@ -1,11 +1,19 @@
 streamlit==1.29.0
 qdrant-client==1.6.4
 pandas==2.1.3
-sentence-transformers==2.2.2
 python-dotenv==1.0.0
 transformers==4.31.0
 huggingface-hub==0.16.4
 tokenizers==0.13.3
 torch==2.1.1
-openai==1.6.1  # For API compatibility with Grok
+openai==1.58.1  # For API compatibility with Grok
 requests==2.31.0
+langchain>=0.3.12
+langchain-community>=0.3.12
+langchain-groq>=0.0.1
+langchain-openai>=0.2.12
+langchain-core>=0.3.25
+chromadb==0.4.22
+pydantic>=2.7.4,<3.0.0
+cohere==4.39
+tiktoken==0.8.0

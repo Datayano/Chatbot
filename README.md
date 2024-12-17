@@ -45,3 +45,24 @@ streamlit run app.py
 ## Note
 
 The current implementation uses in-memory storage for Qdrant. For production use, you may want to configure a persistent Qdrant storage.
+
+
+# Workflow
+
+The project is managed by LangChain, which allows for the use of the following components:
+
+Connection to a CSV file and transformation into a document format.
+LLM with Groq.
+Integration of the LLM with a JSON output parser, using Pydantic to define the output format.
+Embeddings: Sentence Transformers, Cohere Embeddings, or OpenAI Embeddings.
+Vectorstore: ChromaDB.
+Retriever: To match user input with the vectorstore.
+The retriever's output is processed by an LLM to generate a clean and structured result.
+The entire workflow is managed by a chatbot with integrated memory.
+
+# A modifier
+
+
+text-embedding-3-small 
+0,02 /1M
+
