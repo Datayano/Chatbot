@@ -7,3 +7,6 @@ assets
 # Other
 app copy.py
 
+# Secret
+.env
+
