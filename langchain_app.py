@@ -4,59 +4,12 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_groq import ChatGroq
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
-from pydantic import BaseModel, Field
-from typing import List, Optional
-import os
 from dotenv import load_dotenv
+import os
 
 # Load environment variables
 load_dotenv()
-
-# Define the output schema using Pydantic
-class RecipeRecommendation(BaseModel):
-    recipe_name: str = Field(description="Nom de la recette")
-    cooking_time: str = Field(description="Temps de cuisson estimé")
-    ingredients: List[str] = Field(description="Liste des ingrédients principaux")
-    instructions: Optional[str] = Field(description="Instructions de cuisson brèves")
-    difficulty: str = Field(description="Niveau de difficulté (Facile, Moyen, Difficile)")
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "recipe_name": "Spaghetti Carbonara",
-                "cooking_time": "20 minutes",
-                "ingredients": ["spaghetti", "œufs", "fromage pecorino", "guanciale", "poivre noir"],
-                "instructions": "Cuire les pâtes, préparer la sauce avec les œufs et le fromage, mélanger avec le guanciale croustillant",
-                "difficulty": "Moyen"
-            }
-        }
-
-class RecipeList(BaseModel):
-    recipes: List[RecipeRecommendation] = Field(description="Liste des recettes")
-    
-    class Config:
-        schema_extra = {
-            "example": {
-                "recipes": [
-                    {
-                        "recipe_name": "Spaghetti Carbonara",
-                        "cooking_time": "20 minutes",
-                        "ingredients": ["spaghetti", "œufs", "fromage pecorino", "guanciale", "poivre noir"],
-                        "instructions": "Cuire les pâtes, préparer la sauce avec les œufs et le fromage, mélanger avec le guanciale croustillant",
-                        "difficulty": "Moyen"
-                    },
-                    {
-                        "recipe_name": "Risotto aux Champignons",
-                        "cooking_time": "30 minutes",
-                        "ingredients": ["riz arborio", "champignons", "oignon", "vin blanc", "bouillon de légumes"],
-                        "instructions": "Faire revenir l'oignon, ajouter le riz, déglacer au vin blanc, ajouter le bouillon petit à petit",
-                        "difficulty": "Moyen"
-                    }
-                ]
-            }
-        }
 
 # Initialize embedding model
 @st.cache_resource
@@ -102,36 +55,48 @@ def get_conversation_chain(vectorstore):
         return_messages=True
     )
     
-    # Create output parser
-    parser = PydanticOutputParser(pydantic_object=RecipeList)
-    
     # Create custom prompt template
     template = """Tu es un assistant culinaire sympathique et compétent. Utilise les éléments de contexte suivants pour 
     fournir des recommandations de recettes et des conseils de cuisine utiles. 
     
-    Si on te demande une ou plusieurs recettes, renvoie-les dans une liste formatée selon le schéma JSON spécifié.
-    Si on te pose une question générale sur la cuisine, réponds en utilisant du markdown avec des titres (##, ###), 
+    Pour chaque recette, utilise ce format markdown:
+    ### [Nom de la recette]
+    **Temps de cuisson:** [temps]
+    
+    **Difficulté:** [niveau]
+    
+    #### Ingrédients
+    - [ingrédient 1]
+    - [ingrédient 2]
+    ...
+    
+    #### Instructions
+    [instructions détaillées]
+    
+    ---
+    
+    Pour les questions générales sur la cuisine, utilise du markdown avec des titres (##, ###), 
     des listes (- ou *), et du texte en gras (**) ou en italique (*) quand c'est approprié.
+    Réponds toujours en français.
 
-    Contexte: {context}
+    <contexte> 
+    {context}
+    </contexte>
     
     Historique de conversation: {chat_history}
     
     Humain: {question}
     
-    Assistant: Je vais t'aider avec ça. 
-    {format_instructions}
-    """
+    Assistant: Je vais t'aider avec ça."""
     
     prompt = PromptTemplate(
         template=template,
-        input_variables=["context", "chat_history", "question"],
-        partial_variables={"format_instructions": parser.get_format_instructions()}
+        input_variables=["context", "chat_history", "question"]
     )
     
     conversation_chain = ConversationalRetrievalChain.from_llm(
         llm=get_llm(),
-        retriever=vectorstore.as_retriever(search_kwargs={"k": 3}),
+        retriever=vectorstore.as_retriever(search_kwargs={"k": 5}),
         memory=memory,
         combine_docs_chain_kwargs={"prompt": prompt}
     )
@@ -236,70 +201,14 @@ def main():
                 
                 # Add to chat history
                 st.session_state.chat_history.append((user_input, response["answer"]))
-                st.write("hello")
-                st.write(type(response["answer"]))
+
             # Display current conversation
             
-            st.markdown("### 📝 Dernières Recommandations")
+            # Display the response with markdown formatting
+            st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
+            st.markdown(response["answer"])
+            st.markdown('</div>', unsafe_allow_html=True)
             
-            try:
-                # Try to parse the response as a RecipeList
-                recipe_list = RecipeList.parse_raw(response["answer"])
-                
-                # Display each recipe in a nice card format
-                for recipe in recipe_list.recipes:
-                    with st.container():
-                        st.markdown(f"""
-                        <div class="recipe-card">
-                            <div class="recipe-header">🍽️ {recipe.recipe_name}</div>
-                            <div class="recipe-metadata">⏱️ {recipe.cooking_time}</div>
-                            <div class="recipe-metadata">📊 {recipe.difficulty}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                        col1, col2 = st.columns(2)
-                        
-                        with col1:
-                            st.markdown("### 🥘 Ingrédients")
-                            with st.container():
-                                st.markdown('<div class="ingredient-list">', unsafe_allow_html=True)
-                                for ingredient in recipe.ingredients:
-                                    st.markdown(f"• {ingredient}")
-                                st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        with col2:
-                            st.markdown("### 📝 Instructions")
-                            if recipe.instructions:
-                                st.markdown('<div class="instructions-box">', unsafe_allow_html=True)
-                                st.markdown(recipe.instructions)
-                                st.markdown('</div>', unsafe_allow_html=True)
-                        
-                        # Add some spacing between recipes
-                        st.markdown("<br>", unsafe_allow_html=True)
-            
-            except Exception as e:
-                # If parsing fails, format the response as markdown
-                response_text = response["answer"]
-                
-                # Remove any JSON formatting artifacts if present
-                response_text = response_text.replace('```json', '').replace('```', '')
-                
-                # Display the response in a styled container
-                st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
-                st.markdown(response_text)
-                st.markdown('</div>', unsafe_allow_html=True)
-            
-            # Display chat history in a collapsible section
-            with st.expander("💬 Voir l'historique de conversation", expanded=False):
-                for user_msg, ai_msg in st.session_state.chat_history:
-                    st.markdown('<div class="chat-message user-message">', unsafe_allow_html=True)
-                    st.markdown(f"**Vous:** {user_msg}")
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
-                    st.markdown(f"**Assistant:** {ai_msg}")
-                    st.markdown('</div>', unsafe_allow_html=True)
-    
     except Exception as e:
         st.error("⚠️ Erreur de Configuration")
         st.error(f"Une erreur s'est produite : {str(e)}")
