@@ -33,7 +33,30 @@ class RecipeRecommendation(BaseModel):
             }
         }
 
-
+class RecipeList(BaseModel):
+    recipes: List[RecipeRecommendation] = Field(description="Liste des recettes")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "recipes": [
+                    {
+                        "recipe_name": "Spaghetti Carbonara",
+                        "cooking_time": "20 minutes",
+                        "ingredients": ["spaghetti", "œufs", "fromage pecorino", "guanciale", "poivre noir"],
+                        "instructions": "Cuire les pâtes, préparer la sauce avec les œufs et le fromage, mélanger avec le guanciale croustillant",
+                        "difficulty": "Moyen"
+                    },
+                    {
+                        "recipe_name": "Risotto aux Champignons",
+                        "cooking_time": "30 minutes",
+                        "ingredients": ["riz arborio", "champignons", "oignon", "vin blanc", "bouillon de légumes"],
+                        "instructions": "Faire revenir l'oignon, ajouter le riz, déglacer au vin blanc, ajouter le bouillon petit à petit",
+                        "difficulty": "Moyen"
+                    }
+                ]
+            }
+        }
 
 # Initialize embedding model
 @st.cache_resource
@@ -80,13 +103,15 @@ def get_conversation_chain(vectorstore):
     )
     
     # Create output parser
-    parser = PydanticOutputParser(pydantic_object=RecipeRecommendation)
+    parser = PydanticOutputParser(pydantic_object=RecipeList)
     
     # Create custom prompt template
     template = """Tu es un assistant culinaire sympathique et compétent. Utilise les éléments de contexte suivants pour 
-    fournir des recommandations de recettes et des conseils de cuisine utiles. Si tu recommandes une recette, formate-la selon 
-    le schéma JSON spécifié. Prête attention aux métadonnées qui incluent le temps de cuisson et la taille des portions.
-    Réponds toujours en français.
+    fournir des recommandations de recettes et des conseils de cuisine utiles. 
+    
+    Si on te demande une ou plusieurs recettes, renvoie-les dans une liste formatée selon le schéma JSON spécifié.
+    Si on te pose une question générale sur la cuisine, réponds en utilisant du markdown avec des titres (##, ###), 
+    des listes (- ou *), et du texte en gras (**) ou en italique (*) quand c'est approprié.
 
     Contexte: {context}
     
@@ -211,45 +236,57 @@ def main():
                 
                 # Add to chat history
                 st.session_state.chat_history.append((user_input, response["answer"]))
-            
+                st.write("hello")
+                st.write(type(response["answer"]))
             # Display current conversation
+            
             st.markdown("### 📝 Dernières Recommandations")
             
             try:
-                # Try to parse the response as a RecipeRecommendation
-                recipe = RecipeRecommendation.parse_raw(response["answer"])
+                # Try to parse the response as a RecipeList
+                recipe_list = RecipeList.parse_raw(response["answer"])
                 
-                # Display recipe in a nice card format
-                with st.container():
-                    st.markdown(f"""
-                    <div class="recipe-card">
-                        <div class="recipe-header">🍽️ {recipe.recipe_name}</div>
-                        <div class="recipe-metadata">⏱️ {recipe.cooking_time}</div>
-                        <div class="recipe-metadata">📊 {recipe.difficulty}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("### 🥘 Ingrédients")
-                        with st.container():
-                            st.markdown('<div class="ingredient-list">', unsafe_allow_html=True)
-                            for ingredient in recipe.ingredients:
-                                st.markdown(f"• {ingredient}")
-                            st.markdown('</div>', unsafe_allow_html=True)
-                    
-                    with col2:
-                        st.markdown("### 📝 Instructions")
-                        if recipe.instructions:
-                            st.markdown('<div class="instructions-box">', unsafe_allow_html=True)
-                            st.write(recipe.instructions)
-                            st.markdown('</div>', unsafe_allow_html=True)
+                # Display each recipe in a nice card format
+                for recipe in recipe_list.recipes:
+                    with st.container():
+                        st.markdown(f"""
+                        <div class="recipe-card">
+                            <div class="recipe-header">🍽️ {recipe.recipe_name}</div>
+                            <div class="recipe-metadata">⏱️ {recipe.cooking_time}</div>
+                            <div class="recipe-metadata">📊 {recipe.difficulty}</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown("### 🥘 Ingrédients")
+                            with st.container():
+                                st.markdown('<div class="ingredient-list">', unsafe_allow_html=True)
+                                for ingredient in recipe.ingredients:
+                                    st.markdown(f"• {ingredient}")
+                                st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        with col2:
+                            st.markdown("### 📝 Instructions")
+                            if recipe.instructions:
+                                st.markdown('<div class="instructions-box">', unsafe_allow_html=True)
+                                st.markdown(recipe.instructions)
+                                st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        # Add some spacing between recipes
+                        st.markdown("<br>", unsafe_allow_html=True)
             
-            except:
-                # If parsing fails, display the raw response with markdown formatting
+            except Exception as e:
+                # If parsing fails, format the response as markdown
+                response_text = response["answer"]
+                
+                # Remove any JSON formatting artifacts if present
+                response_text = response_text.replace('```json', '').replace('```', '')
+                
+                # Display the response in a styled container
                 st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
-                st.markdown(response["answer"])
+                st.markdown(response_text)
                 st.markdown('</div>', unsafe_allow_html=True)
             
             # Display chat history in a collapsible section
