@@ -16,22 +16,24 @@ load_dotenv()
 
 # Define the output schema using Pydantic
 class RecipeRecommendation(BaseModel):
-    recipe_name: str = Field(description="Name of the recipe")
-    cooking_time: str = Field(description="Estimated cooking time")
-    ingredients: List[str] = Field(description="List of main ingredients")
-    instructions: Optional[str] = Field(description="Brief cooking instructions")
-    difficulty: str = Field(description="Difficulty level (Easy, Medium, Hard)")
+    recipe_name: str = Field(description="Nom de la recette")
+    cooking_time: str = Field(description="Temps de cuisson estimé")
+    ingredients: List[str] = Field(description="Liste des ingrédients principaux")
+    instructions: Optional[str] = Field(description="Instructions de cuisson brèves")
+    difficulty: str = Field(description="Niveau de difficulté (Facile, Moyen, Difficile)")
     
     class Config:
         schema_extra = {
             "example": {
                 "recipe_name": "Spaghetti Carbonara",
                 "cooking_time": "20 minutes",
-                "ingredients": ["spaghetti", "eggs", "pecorino cheese", "guanciale", "black pepper"],
-                "instructions": "Cook pasta, prepare sauce with eggs and cheese, mix with crispy guanciale",
-                "difficulty": "Medium"
+                "ingredients": ["spaghetti", "œufs", "fromage pecorino", "guanciale", "poivre noir"],
+                "instructions": "Cuire les pâtes, préparer la sauce avec les œufs et le fromage, mélanger avec le guanciale croustillant",
+                "difficulty": "Moyen"
             }
         }
+
+
 
 # Initialize embedding model
 @st.cache_resource
@@ -81,17 +83,18 @@ def get_conversation_chain(vectorstore):
     parser = PydanticOutputParser(pydantic_object=RecipeRecommendation)
     
     # Create custom prompt template
-    template = """You are a knowledgeable and friendly cooking assistant. Use the following pieces of context to 
-    provide helpful recipe recommendations and cooking advice. If you recommend a recipe, format it according to 
-    the specified JSON schema. Pay attention to the metadata which includes cooking time and serving size.
+    template = """Tu es un assistant culinaire sympathique et compétent. Utilise les éléments de contexte suivants pour 
+    fournir des recommandations de recettes et des conseils de cuisine utiles. Si tu recommandes une recette, formate-la selon 
+    le schéma JSON spécifié. Prête attention aux métadonnées qui incluent le temps de cuisson et la taille des portions.
+    Réponds toujours en français.
 
-    Context: {context}
+    Contexte: {context}
     
-    Chat History: {chat_history}
+    Historique de conversation: {chat_history}
     
-    Human: {question}
+    Humain: {question}
     
-    Assistant: Let me help you with that. 
+    Assistant: Je vais t'aider avec ça. 
     {format_instructions}
     """
     
@@ -111,7 +114,66 @@ def get_conversation_chain(vectorstore):
     return conversation_chain
 
 def main():
-    st.title("🍳 LangChain Recipe Assistant")
+    st.set_page_config(
+        page_title="Assistant Culinaire",
+        page_icon="🍳",
+        layout="wide"
+    )
+    
+    st.title("🧑‍🍳 Assistant Culinaire LangChain")
+    st.markdown("""
+    <style>
+    .recipe-card {
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #f0f7ff;
+        margin: 10px 0;
+        border: 1px solid #cce0ff;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .ingredient-list {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+    }
+    .recipe-header {
+        color: #2c5282;
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    .recipe-metadata {
+        display: inline-block;
+        margin: 5px 10px;
+        padding: 5px 10px;
+        background-color: #ffffff;
+        border-radius: 15px;
+        border: 1px solid #e0e0e0;
+    }
+    .instructions-box {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #e0e0e0;
+        margin-top: 10px;
+    }
+    .chat-message {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 5px;
+    }
+    .user-message {
+        background-color: #e3f2fd;
+        margin-left: 20%;
+        margin-right: 5%;
+    }
+    .assistant-message {
+        background-color: #f5f5f5;
+        margin-left: 5%;
+        margin-right: 20%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     
     # Initialize session state
     if "conversation" not in st.session_state:
@@ -126,32 +188,90 @@ def main():
             st.session_state.conversation = get_conversation_chain(vectorstore)
         
         # Chat interface
-        st.write("👋 Hello! I'm your AI cooking assistant. I can help you find recipes, provide cooking tips, and answer your culinary questions!")
+        st.markdown("""
+        ### 👋 Bienvenue sur votre Assistant Culinaire IA !
+        Je peux vous aider à trouver des recettes, donner des conseils de cuisine et répondre à vos questions culinaires.
+        Essayez de me demander par exemple :
+        - "Je veux cuisiner quelque chose avec du poulet et des légumes"
+        - "Quelle est une recette rapide de pâtes ?"
+        - "Donne-moi une recette pour un dîner végétarien"
+        """)
         
         # User input
-        user_input = st.text_input("Ask me anything about cooking or recipes!", key="user_input")
+        user_input = st.text_input("Que souhaitez-vous cuisiner aujourd'hui ?", key="user_input", 
+                                 placeholder="Posez-moi n'importe quelle question sur la cuisine ou les recettes !")
         
         if user_input:
-            # Get response from conversation chain
-            response = st.session_state.conversation({
-                "question": user_input,
-                "chat_history": st.session_state.chat_history
-            })
+            with st.spinner('Recherche de la recette parfaite...'):
+                # Get response from conversation chain
+                response = st.session_state.conversation({
+                    "question": user_input,
+                    "chat_history": st.session_state.chat_history
+                })
+                
+                # Add to chat history
+                st.session_state.chat_history.append((user_input, response["answer"]))
             
-            # Add to chat history
-            st.session_state.chat_history.append((user_input, response["answer"]))
+            # Display current conversation
+            st.markdown("### 📝 Dernières Recommandations")
             
-            # Display chat history
-            st.write("---")
-            st.write("Chat History:")
-            for user_msg, ai_msg in st.session_state.chat_history:
-                st.write("You: " + user_msg)
-                st.write("Assistant: " + ai_msg)
-                st.write("---")
+            try:
+                # Try to parse the response as a RecipeRecommendation
+                recipe = RecipeRecommendation.parse_raw(response["answer"])
+                
+                # Display recipe in a nice card format
+                with st.container():
+                    st.markdown(f"""
+                    <div class="recipe-card">
+                        <div class="recipe-header">🍽️ {recipe.recipe_name}</div>
+                        <div class="recipe-metadata">⏱️ {recipe.cooking_time}</div>
+                        <div class="recipe-metadata">📊 {recipe.difficulty}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("### 🥘 Ingrédients")
+                        with st.container():
+                            st.markdown('<div class="ingredient-list">', unsafe_allow_html=True)
+                            for ingredient in recipe.ingredients:
+                                st.markdown(f"• {ingredient}")
+                            st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown("### 📝 Instructions")
+                        if recipe.instructions:
+                            st.markdown('<div class="instructions-box">', unsafe_allow_html=True)
+                            st.write(recipe.instructions)
+                            st.markdown('</div>', unsafe_allow_html=True)
+            
+            except:
+                # If parsing fails, display the raw response with markdown formatting
+                st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
+                st.markdown(response["answer"])
+                st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Display chat history in a collapsible section
+            with st.expander("💬 Voir l'historique de conversation", expanded=False):
+                for user_msg, ai_msg in st.session_state.chat_history:
+                    st.markdown('<div class="chat-message user-message">', unsafe_allow_html=True)
+                    st.markdown(f"**Vous:** {user_msg}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    st.markdown('<div class="chat-message assistant-message">', unsafe_allow_html=True)
+                    st.markdown(f"**Assistant:** {ai_msg}")
+                    st.markdown('</div>', unsafe_allow_html=True)
     
     except Exception as e:
-        st.error(f"An error occurred: {str(e)}")
-        st.error("Please make sure all required API keys are set in the .env file and the vectorstore has been generated.")
+        st.error("⚠️ Erreur de Configuration")
+        st.error(f"Une erreur s'est produite : {str(e)}")
+        st.markdown("""
+        Veuillez vérifier :
+        1. Que toutes les clés API requises sont définies dans le fichier `.env`
+        2. Que le vectorstore a été généré en utilisant `generate_vectorstore.py`
+        3. Que les dépendances nécessaires sont installées
+        """)
 
 if __name__ == "__main__":
     main()
