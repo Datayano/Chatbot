@@ -44,8 +44,8 @@ def main():
         raise ValueError("OPENAI_API_KEY not found in environment variables")
     
     # Clean up existing vectorstore if it exists
-    if os.path.exists("./chroma_db"):
-        shutil.rmtree("./chroma_db")
+    #if os.path.exists("./chroma_db"):
+    #    shutil.rmtree("./chroma_db")
     
     # Initialize embedding model with a more cost-effective model
     embeddings = OpenAIEmbeddings(

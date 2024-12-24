@@ -27,8 +27,8 @@ def get_llm():
         raise ValueError("GROQ_API_KEY not found in environment variables")
     return ChatGroq(
         groq_api_key=os.getenv("GROQ_API_KEY"),
-        model_name="mixtral-8x7b-32768",
-        temperature=0.7,
+        model_name="llama3-70b-8192",
+        temperature=0.5,
     )
 
 # Load existing vectorstore
@@ -62,7 +62,7 @@ def get_conversation_chain(vectorstore):
     Pour chaque recette, utilise ce format markdown:
     ### [Nom de la recette]
     **Temps de cuisson:** [temps]
-    
+
     **Difficulté:** [niveau]
     
     #### Ingrédients
@@ -78,7 +78,7 @@ def get_conversation_chain(vectorstore):
     Pour les questions générales sur la cuisine, utilise du markdown avec des titres (##, ###), 
     des listes (- ou *), et du texte en gras (**) ou en italique (*) quand c'est approprié.
     Réponds toujours en français.
-
+    Respecte le contexte suivant : 
     <contexte> 
     {context}
     </contexte>
