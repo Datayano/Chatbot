@@ -6,7 +6,11 @@ assets
 
 # Other
 app copy.py
+word_similarity.ipynb
 
 # Secret
 .env
 
+# Vectorstore, il y en a 2 différents, un pour jupiter notebook et l'autre dédié à streamlit (.py) 
+chroma_db
+chroma_db_jupiternotebook
