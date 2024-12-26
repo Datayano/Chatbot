@@ -1,0 +1,74 @@
+/* Styles généraux */
+.stApp {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Style des titres de recettes */
+h3 {
+    font-size: 2em !important;
+    color: #2c5282 !important;
+    margin-top: 1.5em !important;
+    margin-bottom: 1em !important;
+    font-weight: 600 !important;
+}
+
+/* Sous-titres des sections de recettes */
+h4 {
+    font-size: 1.5em !important;
+    color: #dbc355 !important;
+    margin-top: 1.2em !important;
+    margin-bottom: 0.8em !important;
+    font-weight: 500 !important;
+}
+
+/* Style de la boîte principale */
+.main-box {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 15px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Style de la boîte d'instructions */
+.instructions-box {
+    background-color: #ffffff;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0;
+    margin-top: 10px;
+}
+
+/* Styles des messages de chat */
+.chat-message {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+}
+
+.assistant-message {
+    background-color: #f5f5f5;
+    margin-left: 5%;
+    margin-right: 20%;
+}
+
+.chat-message-user {
+    background-color: #e3f2fd;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px 20% 5px 0;
+}
+
+.chat-message-assistant {
+    background-color: #f5f5f5;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 5px 0 5px 20%;
+}
+
+/* Style pour l'horodatage */
+.timestamp {
+    font-size: 0.8em;
+    color: #fbce6f;
+    margin-bottom: 5px;
+}

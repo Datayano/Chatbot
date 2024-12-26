@@ -15,10 +15,11 @@ L'assistant peut:
 # Import des bibliothèques nécessaires
 from langchain_community.vectorstores import Chroma  # Pour la base de données vectorielle
 from langchain_openai import OpenAIEmbeddings     # Pour convertir le texte en vecteurs
-from langchain_groq import ChatGroq              # LLM de Groq (alternative à GPT)
+from openai import OpenAI                        # Client OpenAI pour Grok
+from langchain_openai import ChatOpenAI          # Pour utiliser Grok avec LangChain
 from langchain.memory import ConversationBufferMemory  # Pour gérer l'historique des conversations
-from langchain.chains import ConversationalRetrievalChain  # Pour combiner recherche et conversation
-from langchain.prompts import PromptTemplate    # Pour structurer les prompts
+from langchain_core.prompts import PromptTemplate    # Pour structurer les prompts
+from langchain.chains.conversational_retrieval.base import ConversationalRetrievalChain  # Pour combiner recherche et conversation
 from dotenv import load_dotenv  # Pour gérer les variables d'environnement
 import streamlit as st  # Pour l'interface utilisateur
 import os
@@ -48,20 +49,22 @@ def get_embeddings():
 @st.cache_resource
 def get_llm():
     """
-    Initialise le modèle de langage Groq.
+    Initialise le modèle de langage Grok.
     
-    Groq est une alternative à GPT d'OpenAI, offrant des performances similaires
-    avec potentiellement des coûts différents.
+    Grok est un modèle de langage développé par xAI,
+    offrant des performances de haut niveau pour la génération de texte.
     
     Returns:
-        ChatGroq: Instance du modèle de langage configuré
+        ChatOpenAI: Instance du modèle de langage configuré
     """
-    if not os.getenv("GROQ_API_KEY"):
-        raise ValueError("GROQ_API_KEY non trouvée dans les variables d'environnement")
-    return ChatGroq(
+    if not os.getenv("XAI_API_KEY"):
+        raise ValueError("XAI_API_KEY non trouvée dans les variables d'environnement")
+    
+    return ChatOpenAI(
         temperature=0.7,  # Contrôle la créativité des réponses (0=conservateur, 1=créatif)
-        model_name="mixtral-8x7b-32768",  # Modèle Mixtral, un des plus performants de Groq
-        max_tokens=32768  # Longueur maximale des réponses
+        model_name="grok-2-1212",  # Modèle Grok
+        api_key=os.getenv("XAI_API_KEY"),
+        base_url="https://api.x.ai/v1"
     )
 
 # Chargement de la base de données vectorielle
@@ -124,9 +127,10 @@ def get_conversation_chain(vectorstore):
     
     ---
     
-    Pour les questions générales sur la cuisine, utilise du markdown avec des titres (##, ###), 
-    des listes (- ou *), et du texte en gras (**) ou en italique (*) quand c'est approprié.
-    Réponds toujours en français.
+    Instructions importantes:
+    - Ne jamais inclure d'URLs ou de liens vers des sites externes dans tes réponses
+    - Réponds toujours en français
+    - Utilise du markdown avec des titres (##, ###), des listes (- ou *), et du texte en gras (**) ou en italique (*) quand c'est approprié
 
     <contexte> 
     {context}
@@ -171,55 +175,9 @@ def main():
     
     st.title("🧑‍🍳 Assistant Culinaire LangChain")
     
-    # Styles CSS pour l'interface
-    st.markdown("""
-    <style>
-    .recipe-card {
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #f0f7ff;
-        margin: 10px 0;
-        border: 1px solid #cce0ff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .ingredient-list {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 5px;
-        border: 1px solid #e0e0e0;
-    }
-    .recipe-header {
-        color: #2c5282;
-        font-size: 1.5em;
-        margin-bottom: 15px;
-    }
-    .recipe-metadata {
-        display: inline-block;
-        margin: 5px 10px;
-        padding: 5px 10px;
-        background-color: #ffffff;
-        border-radius: 15px;
-        border: 1px solid #e0e0e0;
-    }
-    .instructions-box {
-        background-color: #ffffff;
-        padding: 15px;
-        border-radius: 5px;
-        border: 1px solid #e0e0e0;
-        margin-top: 10px;
-    }
-    .chat-message {
-        padding: 10px;
-        margin: 5px 0;
-        border-radius: 5px;
-    }
-    .assistant-message {
-        background-color: #f5f5f5;
-        margin-left: 5%;
-        margin-right: 20%;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+    # Chargement du CSS depuis le fichier externe
+    with open('style.css') as f:
+        st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
     
     # Initialisation des variables de session
     if "conversation" not in st.session_state:
@@ -254,7 +212,7 @@ def main():
         if user_input:
             # Traitement de la requête utilisateur
             with st.spinner('Recherche de la recette parfaite...'):
-                response = st.session_state.conversation({
+                response = st.session_state.conversation.invoke({
                     "question": user_input,
                     "chat_history": st.session_state.chat_history
                 })
@@ -269,28 +227,6 @@ def main():
             
             # Affichage de l'historique des conversations dans un expander
             with st.expander("💬 Historique des conversations", expanded=False):
-                st.markdown("""
-                <style>
-                .chat-message-user {
-                    background-color: #e3f2fd;
-                    border-radius: 10px;
-                    padding: 10px;
-                    margin: 5px 20% 5px 0;
-                }
-                .chat-message-assistant {
-                    background-color: #f5f5f5;
-                    border-radius: 10px;
-                    padding: 10px;
-                    margin: 5px 0 5px 20%;
-                }
-                .timestamp {
-                    font-size: 0.8em;
-                    color: #666;
-                    margin-bottom: 5px;
-                }
-                </style>
-                """, unsafe_allow_html=True)
-                
                 for i, (user_msg, ai_msg) in enumerate(reversed(st.session_state.chat_history)):
                     # Message utilisateur
                     st.markdown(f'<div class="chat-message-user">', unsafe_allow_html=True)
