@@ -1,6 +1,6 @@
 # Application d'assistant culinaire
 
-Ce projet permet d'intéragir avec un assistant culinaire amusant et convivial. Il retiens l'historique des conversations et est capable de recommander des recettes basées sur les ingrédients ou les préférances de l'utilisateur à partir d'une base de données vectorielle. 
+Ce projet permet d'intéragir avec un assistant culinaire amusant et convivial. Il retient l'historique des conversations et est capable de recommander des recettes provenant d'un fichier CSV converti en base de données vectorielle, en fonction des demandes et préférances de l'utilisateur.
 
 ## Fonctionnalités
 
@@ -61,7 +61,12 @@ streamlit run langchain_app.py
 
 ## Version Jupyter Notebook pour bien comprendre !
 
-Le notebook `langchain_rag_tutorial.ipynb` est une version du projet, sans streamlit, et sans interface utilisateur. C'est une version simplifiée et épurée qui vous permettra de comprendre le fonctionnement de l'assistant culinaire. Ce notebook est indépendant de l'application Streamlit mais il en reprend fidèlement toute la trame. Il utilise sa propre base de données vectorielle, comme ça si vous faites des testes sur le notebook, vous ne risquez pas de corrompre la base de donnée de votre streamlit. Ce notebook utilise aussi le LLM Grok, et l'embedder d'OpenAI. Il est donc parfait pour vous aider à comprendre le fonctionnement de l'assistant culinaire. Pour fonctionner, lui aussi aura besoin des clés API OpenAI et XAI présentes dans le fichier .env tout comme votre application Streamlit.
+Le notebook `langchain_rag_tutorial.ipynb` est une version du projet, sans streamlit, et sans interface utilisateur. 
+C'est une version simplifiée et épurée qui vous permettra de comprendre le fonctionnement de l'assistant culinaire. 
+Ce notebook est indépendant de l'application Streamlit mais il en reprend fidèlement toute la trame. 
+Il utilise sa propre base de données vectorielle, comme ça si vous faites des testes sur le notebook, vous ne risquez pas de corrompre la base de donnée de votre streamlit. 
+Ce notebook utilise aussi le LLM Grok, et l'embedder d'OpenAI. Il est donc parfait pour vous aider à comprendre le fonctionnement de l'assistant culinaire. 
+Pour fonctionner, lui aussi aura besoin des clés API OpenAI et XAI présentes dans le fichier .env.
 
 
 ## Outils utilisés
@@ -82,20 +87,21 @@ Pandas : Manipulation de données
 - `langchain_rag_tutorial.ipynb` : Notebook Jupyter pour comprendre le fonctionnement de l'assistant culinaire.
 
 ### Arbre de fichiers :
-
-Chatbot/                      # Dossier principal du projet
-├── .chatbot_env/             # Dossier contenant votre environnement virtuel
-├── chroma_db/                # Dossier contenant la base de données vectorielle utilisée par Streamlit
-├── chroma_db_jupiternotebook/ # Dossier contenant la base de données vectorielle utilisée par le notebook
-├── generate_vectorstore.py   # Script de génération de la base de données vectorielle
-├── langchain_app.py          # Application Streamlit pour l'assistant culinaire
-├── langchain_rag_tutorial.ipynb # Notebook Jupyter pour comprendre le fonctionnement de l'assistant culinaire
-├── sample_recipes.csv        # Fichier CSV contenant les recettes
-├── .env                      # Fichier d'environnement contenant vos 2 clés API
-├── requirements.txt          # Fichier contenant les packages nécessaires
-├── style.css                 # Fichier CSS pour la mise en forme de l'interface utilisateur
-├── .gitignore                # Fichier pour ignorer certains fichiers et dossiers
-└── README.md                 # Fichier de documentation du projet
+```	
+📂Chatbot/                      # Dossier principal du projet
+📂├── .chatbot_env/             # Dossier contenant votre environnement virtuel
+📂├── chroma_db/                # Dossier contenant la base de données vectorielle utilisée par Streamlit
+📂├── chroma_db_jupiternotebook/ # Dossier contenant la base de données vectorielle utilisée par le notebook
+📝├── generate_vectorstore.py   # Script de génération de la base de données vectorielle
+🚀├── langchain_app.py          # Application Streamlit pour l'assistant culinaire
+📝├── langchain_rag_tutorial.ipynb # Notebook Jupyter pour comprendre le fonctionnement de l'assistant culinaire
+📝├── sample_recipes.csv        # Fichier CSV contenant les recettes
+🔒├── .env                      # Fichier d'environnement contenant vos 2 clés API
+📋├── requirements.txt          # Fichier contenant les packages nécessaires
+🎨├── style.css                 # Fichier CSS pour la mise en forme de l'interface utilisateur
+📝├── .gitignore                # Fichier pour ignorer certains fichiers et dossiers
+📜└── README.md                 # Fichier de documentation du projet
+```
 
 ## Créez vos clés API OpenAI et XAI
 
