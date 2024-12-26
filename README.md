@@ -11,36 +11,41 @@ Ce projet permet d'intéragir avec un assistant culinaire amusant et convivial. 
 
 ## Setup
 
-1. Clonez le repository:
+### 1. Clonez le repository:
 ```bash
 git clone https://github.com/Datayano/Chatbot.git
 cd Chatbot
 ```
 Ceci créera un dossier `Chatbot` dans lequel vous trouverez tous les fichiers du projet.
 
-2. Creez votre environnement virtuel et activez-le avec ces 2 commandes:
-```bash avec windows depuis un terminal Powershell ou celui de VSCode
+### 2. Creez votre environnement virtuel et activez-le avec ces 2 commandes:
+Sous windows depuis un terminal Powershell ou celui de VSCode :
+```bash
 python -m venv chatbot_env
 chatbot_env/Scripts/activate.ps1
 ```
-```bash avec mac ou linux
+Sous linux ou mac :
+```bash
 python3 -m venv chatbot_env
 source chatbot_env/bin/activate
 ```
+
 Sur VSCode, CTR+Shift+P pour ouvrir le panneau de commandes puis selectionez "Python: Select Interpreter" et choisissez l'environnement virtuel que vous venez de créer.
 
-3. Installez les packages necessaires:
-```bash sur windows
+### 3. Installez les packages necessaires:
+Sous Windows :
+```bash
 pip install -r requirements.txt
 ```
-```bash sur mac ou linux
+Sous Mac ou Linux :
+```bash
 pip3 install -r requirements.txt
 ```
 
-4. Configurez les variables d'environnement:
+### 4. Configurez les variables d'environnement:
 Renommez le fichier sample.env en .env et remplissez les 2 variables d'environnement avec vos clés API. (OpenAI et XAI)
 
-5. Lancez votre application Streamlit:
+### 5. Lancez votre application Streamlit:
 ```bash
 streamlit run langchain_app.py
 ```
@@ -77,6 +82,7 @@ Pandas : Manipulation de données
 - `langchain_rag_tutorial.ipynb` : Notebook Jupyter pour comprendre le fonctionnement de l'assistant culinaire.
 
 ### Arbre de fichiers :
+
 Chatbot/                      # Dossier principal du projet
 ├── .chatbot_env/             # Dossier contenant votre environnement virtuel
 ├── chroma_db/                # Dossier contenant la base de données vectorielle utilisée par Streamlit
