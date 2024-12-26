@@ -1,6 +1,6 @@
 # Application d'assistant culinaire
 
-Ce projet permet d'intéragir avec un assistant culinaire amusant et convivial. Il retient l'historique des conversations et est capable de recommander des recettes provenant d'un fichier CSV converti en base de données vectorielle, en fonction des demandes et préférances de l'utilisateur.
+Ce projet permet d'intéragir avec un assistant culinaire amusant et convivial. Il retient l'historique des conversations et est capable de recommander des recettes provenant d'un fichier CSV converti en base de données vectorielle, en fonction des demandes et préférences de l'utilisateur.
 
 ## Fonctionnalités
 
@@ -70,14 +70,15 @@ Pour fonctionner, lui aussi aura besoin des clés API OpenAI et XAI présentes d
 
 
 ## Outils utilisés
-
+```
 Langchain : Framework pour developper des applications basé sur les LLM
-ChromaDB : Base de données vectorielle pour stocker et rechercher des documents
+ChromaDB : Base de données vectorielle pour stocker et rechercher des documents 
 OpenAI : Embeddings pour transformer le texte en vecteurs
 Streamlit : Bibliothèque pour créer des interfaces web interactives en Python
 Grok : LLM de xAI
 Pydantic : Framework de validation de données
 Pandas : Manipulation de données
+```
 
 ## Structure du projet
 
